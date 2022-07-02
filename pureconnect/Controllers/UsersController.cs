@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using pureconnect.Models;
 using System.Data.SqlClient;
 using System.Text;
 
 namespace pureconnect.Controllers
 {
-    [Route("api/[controller]")]
+	[Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
