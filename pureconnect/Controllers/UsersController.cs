@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using pureconnect.Models;
 using System.Data.SqlClient;
 using System.Text;
+using System.Data;
+using BCrypt.Net;
 
 namespace pureconnect.Controllers
 {
@@ -21,7 +23,7 @@ namespace pureconnect.Controllers
         {
             string query = "SELECT * FROM Users";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
-            var jsonResult = new StringBuilder();
+
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 SqlCommand command = new SqlCommand(query, connection);
@@ -51,13 +53,12 @@ namespace pureconnect.Controllers
             }
 
         }
-        [HttpGet]
-        [Route("api/[controller]/{id}")]
+        [HttpGet("byId")]
         public List<User> GetUser(string id)
         {
             string query = "SELECT * FROM Users WHERE ID = @ID";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
-            var jsonResult = new StringBuilder();
+
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 SqlCommand command = new SqlCommand(query, connection);
@@ -88,7 +89,57 @@ namespace pureconnect.Controllers
                 return users;
             }
 
+        }
+        [HttpPost]
+        public ActionResult CreateUser([FromBody]User user)
+        {
+            int requestResult;
+            string query = "INSERT INTO Users(ID, First_Name, Last_Name, Username, Password_hash, Registered_At, Last_Login, Intro, Description, Location, Mobile, Profile_Image) " +
+                "Values(@ID, @First_Name, @Last_Name, @Username, @Password_hash, @Registered_At, @Last_Login, @Intro, @Description, @Location, @Mobile, @Profile_Image)";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+            var jsonResult = new StringBuilder();
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                SqlParameterCollection sqlParameter = command.Parameters;
+                sqlParameter.AddRange(new SqlParameter[]{
+
+                    new SqlParameter() { ParameterName = "@ID", SqlDbType = SqlDbType.NChar, Value = user.ID },
+                    new SqlParameter() { ParameterName = "@First_name", SqlDbType = SqlDbType.NVarChar, Value = user.First_Name },
+                    new SqlParameter() { ParameterName = "@Last_name", SqlDbType = SqlDbType.NVarChar, Value =  user.Last_Name},
+                    new SqlParameter() { ParameterName = "@Username", SqlDbType = SqlDbType.NVarChar, Value = user.Username },
+                    new SqlParameter() { ParameterName = "@Password_hash", SqlDbType = SqlDbType.NVarChar, Value = BCrypt.Net.BCrypt.HashPassword(user.Password_Hash, BCrypt.Net.BCrypt.GenerateSalt(12))},
+                    new SqlParameter() { ParameterName = "@Registered_At", SqlDbType = SqlDbType.DateTime2, Value = user.Registered_At },
+                    new SqlParameter() { ParameterName = "@Last_Login", SqlDbType = SqlDbType.DateTime2, Value = user.Last_Login },
+                    new SqlParameter() { ParameterName = "@Intro", SqlDbType = SqlDbType.NVarChar, Value = user.Intro },
+                    new SqlParameter() { ParameterName = "@Description", SqlDbType = SqlDbType.NVarChar, Value = user.Description },
+                    new SqlParameter() { ParameterName = "@Mobile", SqlDbType = SqlDbType.NVarChar, Value = user.Mobile },
+                    new SqlParameter() { ParameterName = "@Profile_Image", SqlDbType = SqlDbType.NChar, Value = user.Username },
+                    new SqlParameter() { ParameterName = "@Location", SqlDbType = SqlDbType.NVarChar, Value = user.Location }
+
+
+                });
+
+				try
+				{
+                    requestResult = command.ExecuteNonQuery();
+                }
+				catch (Exception)
+				{
+                    return new StatusCodeResult(204);
+                }
+                
+
+                
+            }
+            return new StatusCodeResult(200);
+
 
         }
+
+
+
     }
 }
