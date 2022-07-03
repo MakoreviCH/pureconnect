@@ -14,6 +14,7 @@ namespace pureconnect.Controllers
         {
             Configuration = _configuration;
         }
+
         [HttpGet("byId")]
         public List<Post> GetPost(string id)
         {
@@ -48,6 +49,7 @@ namespace pureconnect.Controllers
             }
 
         }
+
         [HttpGet("byfriends")]
         public List<Post> GetFriendsPost(string id)
         {
@@ -86,5 +88,96 @@ namespace pureconnect.Controllers
 
 
 
+        [HttpPut("update")]
+        public ActionResult UpdatePost([FromBody]PostUpdate p)
+        {
+
+           
+
+            string query = "UPDATE Posts SET Text = @Text, Images = @Images WHERE ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
+                command.Parameters["@ID"].Value = p.ID;
+
+                command.Parameters.Add("@Text", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Text"].Value = (object)p.Text ?? DBNull.Value;
+
+                command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
+
+                
+                    command.ExecuteNonQuery();
+               
+                
+            }
+            return new StatusCodeResult(200);
+
+        }
+
+        [HttpPost("add")]
+        public ActionResult AddPost([FromBody] PostAdd p)
+        {
+
+
+
+            string query = "INSERT INTO Posts(User_ID, Text, Images) VALUES (@User_ID, @Text, @Images)";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@User_ID"].Value = p.User_ID;
+
+                command.Parameters.Add("@Text", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Text"].Value = (object)p.Text ?? DBNull.Value;
+
+                command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
+
+
+                command.ExecuteNonQuery();
+
+
+            }
+            return new StatusCodeResult(200);
+
+        }
+
+        [HttpDelete("delete")]
+        public ActionResult DeletePost(int id)
+        {
+
+
+
+            string query = "DELETE FROM Posts WHERE ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = id;
+
+
+
+                command.ExecuteNonQuery();
+
+
+            }
+            return new StatusCodeResult(200);
+
+        }
+
+
     }
+
 }
+
