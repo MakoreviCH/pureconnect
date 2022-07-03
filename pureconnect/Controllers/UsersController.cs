@@ -18,7 +18,6 @@ namespace pureconnect.Controllers
             Configuration = _configuration;
         }
         [HttpGet]
-        [Route("api/[controller]")]
         public List<User> GetUser()
         {
             string query = "SELECT * FROM Users";
@@ -55,7 +54,7 @@ namespace pureconnect.Controllers
         }
 
         [HttpGet]
-        [Route("api/[controller]/profile")]
+        [Route("profile")]
         public UserProfile GetUserProfile(string id)
         {
             string query = "SELECT ID, Username, Intro, Description, Location, Count_Requests, Count_Friends, Profile_Image, Background_Image FROM users WHERE ID = @ID";
