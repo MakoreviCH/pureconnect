@@ -8,7 +8,7 @@ using BCrypt.Net;
 
 namespace pureconnect.Controllers
 {
-	[Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace pureconnect.Controllers
             Configuration = _configuration;
         }
         [HttpGet]
-        public List<User> GetUser()
+        public List<User> GetUsers()
         {
             string query = "SELECT * FROM Users";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
@@ -33,17 +33,17 @@ namespace pureconnect.Controllers
                 {
                     User u = new User();
                     u.ID = reader.GetValue(0).ToString();
-                    u.First_Name=reader.GetValue(1).ToString();
-                    u.Last_Name=reader.GetValue(2).ToString();
-                    u.Username=reader.GetValue(3).ToString();
-                    u.Password_Hash=reader.GetValue(4).ToString();
-                    u.Registered_At=DateTime.Parse( reader.GetValue(5).ToString());
-                    u.Last_Login= DateTime.Parse(reader.GetValue(6).ToString());
-                    u.Intro=reader.GetValue(7).ToString();
-                    u.Description=reader.GetValue(8).ToString();
-                    u.Location=reader.GetValue(8).ToString();
-                    u.Mobile=reader.GetValue(8).ToString();
-                    u.Profile_Image=reader.GetValue(8).ToString();
+                    u.First_Name = reader.GetValue(1).ToString();
+                    u.Last_Name = reader.GetValue(2).ToString();
+                    u.Username = reader.GetValue(3).ToString();
+                    u.Password_Hash = reader.GetValue(4).ToString();
+                    u.Registered_At = DateTime.Parse(reader.GetValue(5).ToString());
+                    u.Last_Login = DateTime.Parse(reader.GetValue(6).ToString());
+                    u.Intro = reader.GetValue(7).ToString();
+                    u.Description = reader.GetValue(8).ToString();
+                    u.Location = reader.GetValue(8).ToString();
+                    u.Mobile = reader.GetValue(8).ToString();
+                    u.Profile_Image = reader.GetValue(8).ToString();
 
                     users.Add(u);
                 }
@@ -99,7 +99,7 @@ namespace pureconnect.Controllers
             {
                 SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
-                command.Parameters.Add("@ID",System.Data.SqlDbType.NChar);
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
                 command.Parameters["@ID"].Value = id;
                 var reader = command.ExecuteReader();
                 List<User> users = new List<User>();
@@ -127,13 +127,12 @@ namespace pureconnect.Controllers
 
         }
         [HttpPost]
-        public ActionResult CreateUser([FromBody]User user)
+        public ActionResult CreateUser([FromBody] User user)
         {
             int requestResult;
-            string query = "INSERT INTO Users(ID, First_Name, Last_Name, Username, Password_hash, Registered_At, Last_Login, Intro, Description, Location, Mobile, Profile_Image) " +
-                "Values(@ID, @First_Name, @Last_Name, @Username, @Password_hash, @Registered_At, @Last_Login, @Intro, @Description, @Location, @Mobile, @Profile_Image)";
+            string query = "INSERT INTO Users(ID, First_Name, Last_Name, Username, Email, Password_hash, Registered_At, Last_Login, Intro, Description, Location, Mobile, Profile_Image) " +
+                "Values(@ID, @First_Name, @Last_Name, @Username,@Email, @Password_hash, @Registered_At, @Last_Login, @Intro, @Description, @Location, @Mobile, @Profile_Image)";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
-            var jsonResult = new StringBuilder();
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
 
@@ -146,35 +145,96 @@ namespace pureconnect.Controllers
                     new SqlParameter() { ParameterName = "@First_name", SqlDbType = SqlDbType.NVarChar, Value = user.First_Name },
                     new SqlParameter() { ParameterName = "@Last_name", SqlDbType = SqlDbType.NVarChar, Value =  user.Last_Name},
                     new SqlParameter() { ParameterName = "@Username", SqlDbType = SqlDbType.NVarChar, Value = user.Username },
+                    new SqlParameter() { ParameterName = "@Email", SqlDbType = SqlDbType.NVarChar, Value = user.Email },
                     new SqlParameter() { ParameterName = "@Password_hash", SqlDbType = SqlDbType.NVarChar, Value = BCrypt.Net.BCrypt.HashPassword(user.Password_Hash, BCrypt.Net.BCrypt.GenerateSalt(12))},
                     new SqlParameter() { ParameterName = "@Registered_At", SqlDbType = SqlDbType.DateTime2, Value = user.Registered_At },
                     new SqlParameter() { ParameterName = "@Last_Login", SqlDbType = SqlDbType.DateTime2, Value = user.Last_Login },
                     new SqlParameter() { ParameterName = "@Intro", SqlDbType = SqlDbType.NVarChar, Value = user.Intro },
                     new SqlParameter() { ParameterName = "@Description", SqlDbType = SqlDbType.NVarChar, Value = user.Description },
                     new SqlParameter() { ParameterName = "@Mobile", SqlDbType = SqlDbType.NVarChar, Value = user.Mobile },
-                    new SqlParameter() { ParameterName = "@Profile_Image", SqlDbType = SqlDbType.NChar, Value = user.Username },
+                    new SqlParameter() { ParameterName = "@Profile_Image", SqlDbType = SqlDbType.NChar, Value = user.Profile_Image },
                     new SqlParameter() { ParameterName = "@Location", SqlDbType = SqlDbType.NVarChar, Value = user.Location }
 
                 });
 
-				try
-				{
+                try
+                {
                     requestResult = command.ExecuteNonQuery();
                 }
-				catch (Exception)
-				{
+                catch (Exception)
+                {
                     return new StatusCodeResult(204);
                 }
-                
 
-                
+
+
             }
             return new StatusCodeResult(200);
 
-
         }
 
+        [HttpPut]
+        public ActionResult UpdateUserProfile(string id, [FromBody] UserUpdateProfile user)
+        {
+            int requestResult;
+            string query = "UPDATE Users SET Username=@Username, First_Name=@First_Name, Last_Name = @Last_name, Intro=@Intro, " +
+                "Description=@Description, Location = @location,Profile_Image = @Profile_Image WHERE ID =@ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
 
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = id;
+                connection.Open();
+                SqlParameterCollection sqlParameter = command.Parameters;
+                sqlParameter.AddRange(new SqlParameter[]{
 
+                    new SqlParameter() { ParameterName = "@First_name", SqlDbType = SqlDbType.NVarChar, Value = user.First_Name },
+                    new SqlParameter() { ParameterName = "@Last_name", SqlDbType = SqlDbType.NVarChar, Value =  user.Last_Name},
+                    new SqlParameter() { ParameterName = "@Username", SqlDbType = SqlDbType.NVarChar, Value = user.Username },
+                    new SqlParameter() { ParameterName = "@Intro", SqlDbType = SqlDbType.NVarChar, Value = user.Intro },
+                    new SqlParameter() { ParameterName = "@Description", SqlDbType = SqlDbType.NVarChar, Value = user.Description },
+                    new SqlParameter() { ParameterName = "@Profile_Image", SqlDbType = SqlDbType.NChar, Value = user.Profile_Image },
+                    new SqlParameter() { ParameterName = "@Location", SqlDbType = SqlDbType.NVarChar, Value = user.Location },
+
+                });
+
+                try
+                {
+                    requestResult = command.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return new StatusCodeResult(204);
+                }
+            }
+            return new StatusCodeResult(200);
+        }
+        [HttpDelete]
+        public ActionResult DeleteUser(string id)
+        {
+            int requestResult;
+            string query = "DELETE FROM Users WHERE ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+
+                SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = id;
+                connection.Open();
+                SqlParameterCollection sqlParameter = command.Parameters;
+                try
+                {
+                    requestResult = command.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return new StatusCodeResult(204);
+                }
+            }
+            return new StatusCodeResult(200);
+        }
     }
 }
