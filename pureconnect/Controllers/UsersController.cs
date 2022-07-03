@@ -53,6 +53,43 @@ namespace pureconnect.Controllers
             }
 
         }
+
+        [HttpGet]
+        [Route("api/[controller]/profile")]
+        public UserProfile GetUserProfile(string id)
+        {
+            string query = "SELECT ID, Username, Intro, Description, Location, Count_Requests, Count_Friends, Profile_Image, Background_Image FROM users WHERE ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = id;
+                var reader = command.ExecuteReader();
+                UserProfile u = new UserProfile();
+                while (reader.Read())
+                {
+                    u = new UserProfile();
+                    u.ID = reader.GetValue(0).ToString();
+                    u.Username = reader.GetValue(1).ToString();
+                    u.Intro = reader.GetValue(2).ToString();
+                    u.Description = reader.GetValue(3).ToString();
+                    u.Location = reader.GetValue(4).ToString();
+                    u.Count_Requests = Int32.Parse(reader.GetValue(5).ToString());
+                    u.Count_Friends = Int32.Parse(reader.GetValue(6).ToString());
+                    u.Profile_Image = reader.GetValue(7).ToString();
+                    u.Background_Image = reader.GetValue(8).ToString();
+
+
+                }
+
+                return u;
+            }
+
+        }
+
         [HttpGet("byId")]
         public List<User> GetUser(string id)
         {
@@ -118,7 +155,6 @@ namespace pureconnect.Controllers
                     new SqlParameter() { ParameterName = "@Mobile", SqlDbType = SqlDbType.NVarChar, Value = user.Mobile },
                     new SqlParameter() { ParameterName = "@Profile_Image", SqlDbType = SqlDbType.NChar, Value = user.Username },
                     new SqlParameter() { ParameterName = "@Location", SqlDbType = SqlDbType.NVarChar, Value = user.Location }
-
 
                 });
 
