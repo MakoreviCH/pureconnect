@@ -25,6 +25,5 @@
 		public string? Mobile { get; set; }
 
 		public string Profile_Image { get; set; }
-
 	}
 }
