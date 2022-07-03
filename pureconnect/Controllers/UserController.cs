@@ -10,10 +10,10 @@ namespace pureconnect.Controllers
 {
 	[Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UserController : ControllerBase
     {
         private IConfiguration Configuration;
-        public UsersController(IConfiguration _configuration)
+        public UserController(IConfiguration _configuration)
         {
             Configuration = _configuration;
         }
