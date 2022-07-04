@@ -195,12 +195,10 @@ namespace pureconnect.Controllers
             string queryLike = "";
             if (CheckLike(userId, postId))
             {
-               
                 queryLike = "DELETE FROM Post_Likes WHERE User_ID = @User_ID AND Post_ID = @Post_ID";
             }
             else
             {
-               
                 queryLike = "INSERT INTO Post_Likes (User_ID, Post_ID) VALUES (@User_ID, @Post_ID)";
             }
             string connectionString = Configuration.GetConnectionString("PureDatabase");
