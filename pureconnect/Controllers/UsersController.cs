@@ -90,6 +90,42 @@ namespace pureconnect.Controllers
 
         }
 
+        [HttpGet("friends")]
+        public List<UserFriend> GetUserFriends(string id, bool status)
+        {
+            StringBuilder query = new StringBuilder();
+            query.Append("SELECT Users.ID, Users.First_Name, Users.Last_Name, Users.Profile_Image FROM Users WHERE ID IN ");
+
+			if (status)
+                query.Append("(SELECT Source_ID FROM User_Friends WHERE Status = 0 AND Target_ID = @ID)");
+            else
+                query.Append("(SELECT Source_ID FROM User_Friends WHERE Status = 1 AND Target_ID = @ID UNION ALL SELECT Target_ID FROM User_Friends WHERE Status = 1 AND Source_ID = @ID)");
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query.ToString(), connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = id;
+                var reader = command.ExecuteReader();
+                List<UserFriend> users = new List<UserFriend>();
+                while (reader.Read())
+                {
+                    UserFriend u = new UserFriend();
+                    u.ID = reader.GetValue(0).ToString();
+                    u.First_Name = reader.GetValue(1).ToString();
+                    u.Last_Name = reader.GetValue(2).ToString();
+                    u.Profile_Image = reader.GetValue(3).ToString();
+
+                    users.Add(u);
+                }
+
+                return users;
+            }
+
+        }
+
         [HttpGet]
         [Route("profile")]
         public UserProfile GetUserProfile(string id)
@@ -127,7 +163,7 @@ namespace pureconnect.Controllers
         }
 
         
-        [HttpPost]
+        [HttpPost("create")]
         public ActionResult CreateUser([FromBody] UserCreate user)
         {
             int requestResult;
@@ -168,7 +204,7 @@ namespace pureconnect.Controllers
 
         }
 
-        [HttpPut]
+        [HttpPut("update")]
         public ActionResult UpdateUserProfile(string id, [FromBody] UserUpdateProfile user)
         {
             int requestResult;
@@ -206,7 +242,7 @@ namespace pureconnect.Controllers
             }
             return new StatusCodeResult(200);
         }
-        [HttpDelete]
+        [HttpDelete("delete")]
         public ActionResult DeleteUser(string id)
         {
             int requestResult;
