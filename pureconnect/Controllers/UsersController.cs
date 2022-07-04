@@ -88,6 +88,7 @@ namespace pureconnect.Controllers
 
         }
 
+
         
 
         [HttpGet]
@@ -117,7 +118,7 @@ namespace pureconnect.Controllers
                     u.Count_Friends = Int32.Parse(reader.GetValue(6).ToString());
                     u.Profile_Image = reader.GetValue(7).ToString();
                     u.Background_Image = reader.GetValue(8).ToString();
-                    u.Friend_Status = 
+
 
                 }
 

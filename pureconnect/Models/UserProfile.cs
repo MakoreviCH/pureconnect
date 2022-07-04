@@ -20,6 +20,5 @@
 
         public string Background_Image { get; set; }
 
-        public int Friend_Status { get; set; }
     }
 }
