@@ -106,8 +106,15 @@ namespace pureconnect.Controllers
 
                 command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
-
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+                
             }
             return new StatusCodeResult(200);
 
@@ -132,8 +139,14 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
 
-
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
 
             }
             return new StatusCodeResult(200);
@@ -153,7 +166,14 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
                 command.Parameters["@ID"].Value = id;
 
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
             }
             return new StatusCodeResult(200);
 
