@@ -195,12 +195,12 @@ namespace pureconnect.Controllers
             string queryLike = "";
             if (CheckLike(userId, postId))
             {
-                queryPost = "UPDATE Posts SET Count_Likes -= 1 WHERE ID = @Post_ID";
+               
                 queryLike = "DELETE FROM Post_Likes WHERE User_ID = @User_ID AND Post_ID = @Post_ID";
             }
             else
             {
-                queryPost = "UPDATE Posts SET Count_Likes += 1 WHERE ID = @Post_ID";
+               
                 queryLike = "INSERT INTO Post_Likes (User_ID, Post_ID) VALUES (@User_ID, @Post_ID)";
             }
             string connectionString = Configuration.GetConnectionString("PureDatabase");
@@ -212,17 +212,12 @@ namespace pureconnect.Controllers
 
                 connection.Open();
 
-                commandPost.Parameters.Add("@Post_ID", System.Data.SqlDbType.Int);
-                commandPost.Parameters["@Post_ID"].Value = postId;
-                commandPost.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
-                commandPost.Parameters["@User_ID"].Value = userId;
 
                 commandLike.Parameters.Add("@Post_ID", System.Data.SqlDbType.Int);
                 commandLike.Parameters["@Post_ID"].Value = postId;
                 commandLike.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
                 commandLike.Parameters["@User_ID"].Value = userId;
 
-                var readerPost = commandPost.ExecuteNonQuery();
                 var readerLike = commandLike.ExecuteNonQuery();
             }
 
