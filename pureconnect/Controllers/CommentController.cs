@@ -69,7 +69,15 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@Message", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@Message"].Value = c.Message;
 
-                var reader = command.ExecuteNonQuery();
+                try
+                {
+                    var reader = command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+                
                 
                 return new StatusCodeResult(200);
 
