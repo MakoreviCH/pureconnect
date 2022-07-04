@@ -41,7 +41,7 @@ namespace pureconnect.Controllers
                     p.Images = reader.GetValue(5).ToString();
                     p.Count_Likes = Convert.ToInt32(reader.GetValue(6).ToString());
                     p.Count_Comments = Convert.ToInt32(reader.GetValue(7).ToString());
-
+                    p.IsLiked = CheckLike(p.User_ID, p.ID);
                     posts.Add(p);
                 }
 
@@ -76,7 +76,7 @@ namespace pureconnect.Controllers
                     p.Images = reader.GetValue(5).ToString();
                     p.Count_Likes = Convert.ToInt32(reader.GetValue(6).ToString());
                     p.Count_Comments = Convert.ToInt32(reader.GetValue(7).ToString());
-
+                    p.IsLiked = CheckLike(p.User_ID, p.ID);
                     posts.Add(p);
                 }
 
@@ -188,12 +188,11 @@ namespace pureconnect.Controllers
             }
         }
 
-        [HttpPut("updateLike")]
-        public ActionResult UpdateLike(string userId, int postId)
+        [HttpPost("updateLike")]
+        public ActionResult UpdateLike(PostLike pl)
         {
-            string queryPost = "";
             string queryLike = "";
-            if (CheckLike(userId, postId))
+            if (pl.Status)
             {
                 queryLike = "DELETE FROM Post_Likes WHERE User_ID = @User_ID AND Post_ID = @Post_ID";
             }
@@ -205,22 +204,29 @@ namespace pureconnect.Controllers
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                SqlCommand commandPost = new SqlCommand(queryPost, connection);
+               
                 SqlCommand commandLike = new SqlCommand(queryLike, connection);
 
                 connection.Open();
 
-
                 commandLike.Parameters.Add("@Post_ID", System.Data.SqlDbType.Int);
-                commandLike.Parameters["@Post_ID"].Value = postId;
+                commandLike.Parameters["@Post_ID"].Value = pl.Post_ID;
                 commandLike.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
-                commandLike.Parameters["@User_ID"].Value = userId;
-
-                var readerLike = commandLike.ExecuteNonQuery();
+                commandLike.Parameters["@User_ID"].Value = pl.User_ID;
+                try
+                {
+                    var readerLike = commandLike.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+                
             }
 
             return new StatusCodeResult(200);
         }
+
     }
 
 }
