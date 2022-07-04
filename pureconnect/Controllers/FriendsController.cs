@@ -56,8 +56,47 @@ namespace pureconnect.Controllers
             return new StatusCodeResult(200);
         }
 
+        [HttpPost("delete")]
+        public ActionResult DeleteFriend(string source_id, string target_id)
+        {
+            StringBuilder query = new();
+            int status = GetFriendStatus(source_id, target_id);
+            if (status == 3)
+            {
+                query.Append("UPDATE User_Friends SET Status=0 WHERE Target_ID=@Source_ID AND Source_ID = @Target_ID");
+            }
+            else if (status == 1 || status==0)
+            {
+                query.Append("DELETE FROM User_Friends WHERE Target_ID=@Target_ID AND Source_ID =@Source_ID");
+            }
 
-		[HttpGet]
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+
+                SqlCommand command = new SqlCommand(query.ToString(), connection);
+                command.Parameters.Add("@Source_ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@Source_ID"].Value = source_id;
+                command.Parameters.Add("@Target_ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@Target_ID"].Value = target_id;
+                connection.Open();
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception)
+                {
+                    return new StatusCodeResult(204);
+                }
+
+
+            }
+            return new StatusCodeResult(200);
+        }
+
+
+        [HttpGet]
         public List<UserList> GetUserFriends(string user_id, bool list_type)
         {
             StringBuilder query = new StringBuilder();
