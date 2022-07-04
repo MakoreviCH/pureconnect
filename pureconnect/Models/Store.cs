@@ -11,5 +11,6 @@
         public string Background_Image { get; set; }
         public int Count_Followers { get; set; }
         public int Count_Sales { get; set; }
+        public bool Is_Followed { get; set; }
     }
 }

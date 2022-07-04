@@ -16,9 +16,9 @@ namespace pureconnect.Controllers
         }
 
         [HttpGet("storeById")]
-        public List<Store> GetStore(int id)
+        public Store GetStore(int storeId)
         {
-            string query = "SELECT ID, User_ID, Store_Name, Description, Location, Photo, Background_Image, Count_Followers, Count_Sales FROM Stores WHERE ID = @ID";
+            string query = "SELECT Stores.ID, Stores.User_ID, Stores.Store_Name, Stores.Description, Stores.Location, Stores.Photo, Stores.Background_Image, Stores.Count_Followers, Stores.Count_Sales FROM Stores INNER JOIN Store_Follows ON Stores.ID = Store_Follows.Store_Id WHERE Store_Follows.User_ID = @User_ID AND Store_Follows.Store_ID = @ID";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -26,7 +26,7 @@ namespace pureconnect.Controllers
                 SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
                 command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
-                command.Parameters["@ID"].Value = id;
+                command.Parameters["@ID"].Value = storeId;
                 var reader = command.ExecuteReader();
                 Store store = new Store();
 
@@ -42,10 +42,38 @@ namespace pureconnect.Controllers
                     store.Count_Followers = Convert.ToInt32(reader.GetValue(7));
                     store.Count_Sales = Convert.ToInt32(reader.GetValue(8));
                 }
-                return null;
-                //return store;
+                return store;
             }
 
+        }
+
+        [HttpGet("isFollowed")]
+        public bool IsFollowed(int storeId, string userId)
+        {
+            string query = "SELECT Stores.ID, Stores.User_ID, Stores.Store_Name, Stores.Description, Stores.Location, Stores.Photo, Stores.Background_Image, Stores.Count_Followers, Stores.Count_Sales FROM Stores INNER JOIN Store_Follows ON Stores.ID = Store_Follows.Store_Id WHERE Store_Follows.User_ID = @User_ID AND Store_Follows.Store_ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
+                command.Parameters["@ID"].Value = storeId;
+
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.VarChar);
+                command.Parameters["@User_ID"].Value = userId;
+
+                var reader = command.ExecuteReader();
+                
+                reader.Read();
+
+                if (Convert.ToInt32(reader.GetValue(0)) > 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
     }
