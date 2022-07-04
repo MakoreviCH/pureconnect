@@ -88,44 +88,7 @@ namespace pureconnect.Controllers
 
         }
 
-        [HttpGet("friends")]
-        public List<UserList> GetUserFriends(string id, bool status)
-        {
-            StringBuilder query = new StringBuilder();
-            query.Append("SELECT Users.ID, Users.Username, Users.First_Name, Users.Last_Name, Users.Profile_Image FROM Users WHERE ID IN ");
-
-			if (status)
-                query.Append("(SELECT Source_ID FROM User_Friends WHERE Status = 0 AND Target_ID = @ID)");
-            else
-                query.Append("(SELECT Source_ID FROM User_Friends WHERE Status = 1 AND Target_ID = @ID " +
-					"UNION ALL " +
-					"SELECT Target_ID FROM User_Friends WHERE Status = 1 AND Source_ID = @ID)");
-            string connectionString = Configuration.GetConnectionString("PureDatabase");
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                SqlCommand command = new SqlCommand(query.ToString(), connection);
-                connection.Open();
-                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
-                command.Parameters["@ID"].Value = id;
-                var reader = command.ExecuteReader();
-                List<UserList> users = new List<UserList>();
-                while (reader.Read())
-                {
-                    UserList u = new UserList();
-                    u.ID = reader.GetValue(0).ToString();
-                    u.Username = reader.GetValue(1).ToString();
-                    u.First_Name = reader.GetValue(2).ToString();
-                    u.Last_Name = reader.GetValue(3).ToString();
-                    u.Profile_Image = reader.GetValue(4).ToString();
-
-                    users.Add(u);
-                }
-
-                return users;
-            }
-
-        }
+        
 
         [HttpGet]
         [Route("profile")]
@@ -154,7 +117,7 @@ namespace pureconnect.Controllers
                     u.Count_Friends = Int32.Parse(reader.GetValue(6).ToString());
                     u.Profile_Image = reader.GetValue(7).ToString();
                     u.Background_Image = reader.GetValue(8).ToString();
-
+                    u.Friend_Status = 
 
                 }
 
