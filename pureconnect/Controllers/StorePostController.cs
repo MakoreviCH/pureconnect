@@ -7,47 +7,17 @@ namespace pureconnect.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class Store_PostController : ControllerBase
+    public class StorePostController : ControllerBase
     {
         private IConfiguration Configuration;
-        public Store_PostController(IConfiguration _configuration)
+        public StorePostController(IConfiguration _configuration)
         {
             Configuration = _configuration;
         }
 
-        [HttpGet("miniPostByStoreID")]
-        public List<Storepostmini> GetminiStorePost(int id)
-        {
-            string query = "SELECT ID, Product_Name, Price, Photos FROM Store_Posts " +
-                "WHERE Store_ID = @ID";
-            string connectionString = Configuration.GetConnectionString("PureDatabase");
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                SqlCommand command = new SqlCommand(query, connection);
-                connection.Open();
-                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
-                command.Parameters["@ID"].Value = id;
-                var reader = command.ExecuteReader();
-                List<Storepostmini> posts = new List<Storepostmini>();
-                while (reader.Read())
-                {
-                    Storepostmini p = new Storepostmini();
-                    p.ID = Convert.ToInt32(reader.GetValue(0).ToString());
-                    p.Product_Name = reader.GetValue(1).ToString();
-                    p.Price = Convert.ToInt32(reader.GetValue(2).ToString());
-                    p.Photos = reader.GetValue(3).ToString();
-                    
-                    posts.Add(p);
-                }
-
-                return posts;
-            }
-
-        }
-
-        [HttpGet("FullPostByStoreID")]
-        public List<StorePostFull> GetfullStorePost(int id)
+       
+        [HttpGet("byID")]
+        public StorePost GetStorePost(int id)
         {
             string query = "SELECT ID, Store_ID, Product_Name, Price, Photos, Description FROM Store_Posts " +
                 "WHERE ID = @ID";
@@ -60,10 +30,10 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
                 command.Parameters["@ID"].Value = id;
                 var reader = command.ExecuteReader();
-                List<StorePostFull> posts = new List<StorePostFull>();
-                while (reader.Read())
-                {
-                    StorePostFull p = new StorePostFull();
+
+                reader.Read();
+                
+                    StorePost p = new StorePost();
                     p.ID = Convert.ToInt32(reader.GetValue(0).ToString());
                     p.Store_ID = Convert.ToInt32(reader.GetValue(1).ToString());
                     p.Product_Name = reader.GetValue(2).ToString();
@@ -71,10 +41,10 @@ namespace pureconnect.Controllers
                     p.Photos = reader.GetValue(4).ToString();
                     p.Description = reader.GetValue(5).ToString();
 
-                    posts.Add(p);
-                }
+                 
+                
 
-                return posts;
+                return p;
             }
 
         }
@@ -169,7 +139,7 @@ namespace pureconnect.Controllers
             {
                 SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
-                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
                 command.Parameters["@ID"].Value = id;
 
                 try
