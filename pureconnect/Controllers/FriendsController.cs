@@ -135,6 +135,43 @@ namespace pureconnect.Controllers
             }
 
         }
+        [HttpGet("requests")]
+        public List<UserList> GetUserRequests(string user_id)
+        {
+            StringBuilder query = new StringBuilder();
+            query.Append("SELECT Users.ID, Users.Username, Users.First_Name, Users.Last_Name, Users.Profile_Image FROM Users WHERE ID IN ");
+
+                query.Append("(SELECT Target_ID FROM User_Friends WHERE Status = 0 AND Source_ID = @ID)");
+
+
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query.ToString(), connection);
+                connection.Open();
+                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@ID"].Value = user_id;
+                var reader = command.ExecuteReader();
+                List<UserList> users = new List<UserList>();
+                while (reader.Read())
+                {
+                    UserList u = new UserList();
+                    u.ID = reader.GetValue(0).ToString();
+                    u.Username = reader.GetValue(1).ToString();
+                    u.First_Name = reader.GetValue(2).ToString();
+                    u.Last_Name = reader.GetValue(3).ToString();
+                    u.Profile_Image = reader.GetValue(4).ToString();
+
+                    users.Add(u);
+                }
+
+                return users;
+            }
+
+        }
+
+
         [HttpGet("status")]
         public int GetFriendStatus(string User_ID, string Profile_ID)
 		{
