@@ -104,7 +104,6 @@ namespace pureconnect.Controllers
                 command.Parameters["@Store_ID"].Value = storeId;
 
                 var reader = command.ExecuteReader();
-                reader.Read();
                 while (reader.Read())
                 {
                     storePosts.ID = Convert.ToInt32(reader.GetValue(0));
@@ -118,5 +117,48 @@ namespace pureconnect.Controllers
             return posts;
         }
 
+        [HttpPost("add")]
+        public ActionResult AddStore(StoreAdd s)
+        {
+            string query = "INSERT INTO Stores(Photo, Store_Name, Description, Location, Background_Image, User_ID) VALUES(@Photo, @Store_Name, @Description, @Location, @Background_Image, @User_ID)";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@Photo", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Photo"].Value = s.Photo;
+
+                command.Parameters.Add("@Store_Name", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Store_Name"].Value = s.Store_Name;
+
+                command.Parameters.Add("@Description", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Description"].Value = s.Description;
+
+                command.Parameters.Add("@Location", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Location"].Value = s.Location;
+
+                command.Parameters.Add("@Background_Image", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Background_Image"].Value = s.Background_Photo;
+
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@User_ID"].Value = s.User_ID;
+
+                try
+                {
+                    var reader = command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+
+
+                return new StatusCodeResult(200);
+
+            }
+
+        }
     }
 }
