@@ -58,7 +58,7 @@ namespace pureconnect.Controllers
 
         }
 
-        [HttpGet("byId")]
+        [HttpGet("filter")]
         public List<Item> GetItem(string user_id, string? type, string? ordering)
         {
             string construct = "";
@@ -232,5 +232,43 @@ namespace pureconnect.Controllers
             }
 
         }
+
+        [HttpGet("byID")]
+        public ItemFull GetItemFull(string user_id, int item_id)
+        {
+            string query = $"SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type, Items.Description FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID WHERE Items.ID = @ID ";
+
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+
+                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
+                command.Parameters["@ID"].Value = item_id;
+
+                var reader = command.ExecuteReader();
+                
+                reader.Read();
+                ItemFull p = new ItemFull();
+                p.ID = Convert.ToInt32(reader.GetValue(0).ToString());
+                p.User_Name = reader.GetValue(1).ToString();
+                p.Item_Name = reader.GetValue(2).ToString();
+                p.Images = reader.GetValue(3).ToString();
+                p.Type = reader.GetValue(4).ToString();
+                p.Description = reader.GetValue(5).ToString();
+                ItemBuy itemBuy = new ItemBuy();
+                itemBuy.Item_ID = p.ID;
+                itemBuy.User_ID = user_id;
+                p.IsBought = IsBought(itemBuy);
+
+                
+
+                return p;
+            }
+
+        }
+
     }
 }
