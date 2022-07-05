@@ -7,5 +7,6 @@
         public string Item_Name { get; set; }
         public string Images { get; set; }
         public string Type { get; set; }
+        public bool IsBought { get; set; }
     }
 }

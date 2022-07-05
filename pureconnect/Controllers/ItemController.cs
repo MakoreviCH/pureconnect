@@ -71,12 +71,12 @@ namespace pureconnect.Controllers
             else if (type.ToLower() == "frames")
             {
                 query += "WHERE Items.Type = 'frames'";
-                construct += "WHERE Items.Type = 'stickers'";
+                construct += "WHERE Items.Type = 'frames'";
             }
             else if (type.ToLower() == "backgrounds")
             {
                 query += "WHERE Items.Type = 'backgrounds'";
-                construct += "WHERE Items.Type = 'stickers'";
+                construct += "WHERE Items.Type = 'backgrounds'";
             }
 
             if (ordering.ToLower() == "priceDesc")
@@ -101,7 +101,7 @@ namespace pureconnect.Controllers
             {
                 SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
-                var reader = command.ExecuteReader();
+                var reader = command.ExecuteReader();    
                 List<Item> posts = new List<Item>();
                 while (reader.Read())
                 {
@@ -116,6 +116,67 @@ namespace pureconnect.Controllers
                 }
 
                 return posts;
+            }
+
+        }
+
+        [HttpPost("buy")]
+        public ActionResult BuyItem([FromBody] ItemBuy p)
+        {
+            string query = "INSERT INTO User_Items (User_ID, Item_ID)" +
+                " VALUES (@User_ID, @Item_ID)";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@User_ID"].Value = p.User_ID;
+
+                command.Parameters.Add("@Item_ID", System.Data.SqlDbType.Int);
+                command.Parameters["@Item_ID"].Value = p.Item_ID;
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+
+            }
+            return new StatusCodeResult(200);
+        }
+
+        [HttpGet("isBought")]
+        public bool IsBought([FromBody] ItemBuy i)
+        {
+            string query = "SELECT User_ID FROM User_Item WHERE User_Id = @User_ID AND Item_ID = @Item_ID";
+            
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
+                command.Parameters["@User_ID"].Value = i.User_ID;
+
+                command.Parameters.Add("@Item_ID", System.Data.SqlDbType.Int);
+                command.Parameters["@Item_ID"].Value = i.Item_ID;
+
+                var reader = command.ExecuteReader();
+                reader.Read();
+
+                if (reader.HasRows)
+                {
+                    return true;
+                }
+
+                return false;
             }
 
         }
