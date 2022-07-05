@@ -120,7 +120,7 @@ namespace pureconnect.Controllers
         [HttpPost("add")]
         public ActionResult AddStore(StoreAdd s)
         {
-            string query = "INSERT INTO Stores(Photo, Store_Name, Description, Location, Background_Image, User_ID) VALUES(@Photo, @Store_Name, @Description, @Location, @Background_Image, @User_ID)";
+            string query = "INSERT INTO Stores(Photo, Store_Name, Description, Location, Background_Image, User_ID, License) VALUES(@Photo, @Store_Name, @Description, @Location, @Background_Image, @User_ID, @License)";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -145,6 +145,9 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@User_ID", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@User_ID"].Value = s.User_ID;
 
+                command.Parameters.Add("@License", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@License"].Value = s.License;
+
                 try
                 {
                     var reader = command.ExecuteNonQuery();
@@ -159,6 +162,80 @@ namespace pureconnect.Controllers
 
             }
 
+        }
+
+        [HttpPut("updateStore")]
+        public ActionResult UpdatePost([FromBody] StoreUpdate s)
+        {
+            string query = "UPDATE Store SET Photo = @Photo, Store_Name = @Store_Name, Description = @Description, Location = @Location, Background_Image = @Background_Image WHERE ID = @ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@Photo", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Photo"].Value = s.Photo;
+
+                command.Parameters.Add("@Store_Name", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Store_Name"].Value = s.Store_Name;
+
+                command.Parameters.Add("@Description", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Description"].Value = s.Description;
+
+                command.Parameters.Add("@Location", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Location"].Value = s.Location;
+
+                command.Parameters.Add("@Background_Image", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Background_Image"].Value = s.Background_Image;
+
+                command.Parameters.Add("@ID", System.Data.SqlDbType.Int);
+                command.Parameters["@ID"].Value = s.Id;
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch
+                {
+                    return new StatusCodeResult(204);
+                }
+
+            }
+            return new StatusCodeResult(200);
+
+        }
+
+        [HttpGet("followedStoresByUser")]
+        public List<StoreForSearch> GetFollowedStoresByUserId(string userId)
+        {
+            string query = "SELECT Store_Follows.Store_ID, Stores.Store_Name, Stores.Description, Stores.Photo FROM Stores INNER JOIN Store_Follows ON Stores.ID = Store_Follows.Store_ID WHERE Store_Follows.User_ID = @User_ID";
+
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@User_ID"].Value = userId;
+
+                var reader = command.ExecuteReader();
+                StoreForSearch storeForSearch = new StoreForSearch();
+                List<StoreForSearch> list = new List<StoreForSearch>();
+                while (reader.Read())
+                {
+                    storeForSearch.Id = Convert.ToInt32(reader.GetValue(0));
+                    storeForSearch.Store_Name = reader.GetValue(1).ToString();
+                    storeForSearch.Description = reader.GetValue(2).ToString();
+                    storeForSearch.Photo = reader.GetValue(3).ToString();
+
+                    list.Add(storeForSearch);
+                }
+
+                return list;
+
+            }
         }
     }
 }
