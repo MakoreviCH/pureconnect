@@ -59,10 +59,42 @@ namespace pureconnect.Controllers
         }
 
         [HttpGet("byId")]
-        public List<Item> GetPost(string type = "", string ordering = "")  
+        public List<Item> GetPost(string type, string ordering)  
         {
-            string query = "SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images, Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID";
-            
+            string construct = "";
+            string query = "SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID ";
+            if (type.ToLower() == "stickers")
+            {
+                query += "WHERE Items.Type = 'stickers'";
+                construct += "WHERE Items.Type = 'stickers'";
+            }
+            else if (type.ToLower() == "frames")
+            {
+                query += "WHERE Items.Type = 'frames'";
+                construct += "WHERE Items.Type = 'stickers'";
+            }
+            else if (type.ToLower() == "backgrounds")
+            {
+                query += "WHERE Items.Type = 'backgrounds'";
+                construct += "WHERE Items.Type = 'stickers'";
+            }
+
+            if (ordering.ToLower() == "priceDesc")
+            {
+                query += " ORDER BY Items.Price DESC";
+            }
+            else if (ordering.ToLower() == "priceAsc")
+            {
+                query += " ORDER BY Items.Price ASC";
+            }
+            else if (ordering.ToLower() == "newest")
+            {
+                query += " ORDER BY Items.Created_At DESC";
+            }
+            else if (ordering.ToLower() == "popularity")
+            {
+                query = $"SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type, COUNT(User_Items.User_ID) AS Cnt FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID INNER JOIN User_Items ON User_Items.Item_ID = Items.ID {construct} GROUP BY Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type ORDER BY Cnt DESC";
+            }
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
