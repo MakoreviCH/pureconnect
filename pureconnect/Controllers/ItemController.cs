@@ -59,9 +59,10 @@ namespace pureconnect.Controllers
         }
 
         [HttpGet("byId")]
-        public List<Item> GetPost()
+        public List<Item> GetPost(string type = "", string ordering = "")  
         {
             string query = "SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images, Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID";
+            
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
