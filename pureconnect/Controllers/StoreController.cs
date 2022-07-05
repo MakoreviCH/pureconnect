@@ -241,7 +241,7 @@ namespace pureconnect.Controllers
         [HttpGet("searchByName")]
         public List<SearchStoreToUser> GetStoresByName(string Name, string User_Id)
         {
-            string query = "SELECT ID, Store_Name, Description, Photo FROM Stores WHERE Store_Name LIKE @Store_Name + '%'";
+            string query = "SELECT ID, Store_Name, Description, Photo FROM Stores WHERE Store_Name LIKE  '%' + @Store_Name + '%'";
 
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
