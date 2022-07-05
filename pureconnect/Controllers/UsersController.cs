@@ -17,7 +17,7 @@ namespace pureconnect.Controllers
         {
             Configuration = _configuration;
         }
-        [HttpGet]
+        [HttpGet("byID")]
         public List<User> GetUsers()
         {
             string query = "SELECT * FROM Users";
@@ -36,14 +36,18 @@ namespace pureconnect.Controllers
                     u.First_Name = reader.GetValue(1).ToString();
                     u.Last_Name = reader.GetValue(2).ToString();
                     u.Username = reader.GetValue(3).ToString();
-                    u.Password_Hash = reader.GetValue(4).ToString();
-                    u.Registered_At = DateTime.Parse(reader.GetValue(5).ToString());
-                    u.Last_Login = DateTime.Parse(reader.GetValue(6).ToString());
-                    u.Intro = reader.GetValue(7).ToString();
-                    u.Description = reader.GetValue(8).ToString();
-                    u.Location = reader.GetValue(8).ToString();
-                    u.Mobile = reader.GetValue(8).ToString();
-                    u.Profile_Image = reader.GetValue(8).ToString();
+                    u.Email = reader.GetValue(4).ToString();
+                    u.Password_Hash = reader.GetValue(5).ToString();
+                    u.Registered_At = DateTime.Parse(reader.GetValue(6).ToString());
+                    u.Last_Login = DateTime.Parse(reader.GetValue(7).ToString());
+                    u.Intro = reader.GetValue(8).ToString();
+                    u.Description = reader.GetValue(9).ToString();
+                    u.Location = reader.GetValue(10).ToString();
+                    u.Mobile = reader.GetValue(11).ToString();
+                    u.Profile_Image = reader.GetValue(12).ToString();
+                    u.Count_Requests = Int32.Parse( reader.GetValue(13).ToString());
+                    u.Count_Friends = Int32.Parse(reader.GetValue(14).ToString());
+                    u.Background_Image = reader.GetValue(15).ToString();
 
                     users.Add(u);
                 }
@@ -52,35 +56,29 @@ namespace pureconnect.Controllers
             }
 
         }
-        [HttpGet("byId")]
-        public List<User> GetUser(string id)
+        [HttpGet("byName")]
+        public List<UserList> GetUsers(string input)
         {
-            string query = "SELECT * FROM Users WHERE ID = @ID";
+            string query = "SELECT Users.ID, Users.Username, Users.First_Name, Users.Last_Name, Users.Profile_Image FROM Users " +
+				"WHERE Users.Username LIKE @Name+'%' OR Users.First_Name LIKE @Name+'%' OR Users.Last_Name LIKE @Name+'%'";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
-                SqlCommand command = new SqlCommand(query, connection);
+                SqlCommand command = new SqlCommand(query.ToString(), connection);
                 connection.Open();
-                command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
-                command.Parameters["@ID"].Value = id;
+                command.Parameters.Add("@Name", System.Data.SqlDbType.NChar);
+                command.Parameters["@Name"].Value = input;
                 var reader = command.ExecuteReader();
-                List<User> users = new List<User>();
+                List<UserList> users = new List<UserList>();
                 while (reader.Read())
                 {
-                    User u = new User();
+                    UserList u = new UserList();
                     u.ID = reader.GetValue(0).ToString();
-                    u.First_Name = reader.GetValue(1).ToString();
-                    u.Last_Name = reader.GetValue(2).ToString();
-                    u.Username = reader.GetValue(3).ToString();
-                    u.Password_Hash = reader.GetValue(4).ToString();
-                    u.Registered_At = DateTime.Parse(reader.GetValue(5).ToString());
-                    u.Last_Login = DateTime.Parse(reader.GetValue(6).ToString());
-                    u.Intro = reader.GetValue(7).ToString();
-                    u.Description = reader.GetValue(8).ToString();
-                    u.Location = reader.GetValue(8).ToString();
-                    u.Mobile = reader.GetValue(8).ToString();
-                    u.Profile_Image = reader.GetValue(8).ToString();
+                    u.Username = reader.GetValue(1).ToString();
+                    u.First_Name = reader.GetValue(2).ToString();
+                    u.Last_Name = reader.GetValue(3).ToString();
+                    u.Profile_Image = reader.GetValue(4).ToString();
 
                     users.Add(u);
                 }
@@ -89,6 +87,9 @@ namespace pureconnect.Controllers
             }
 
         }
+
+
+        
 
         [HttpGet]
         [Route("profile")]
@@ -127,7 +128,7 @@ namespace pureconnect.Controllers
         }
 
         
-        [HttpPost]
+        [HttpPost("create")]
         public ActionResult CreateUser([FromBody] UserCreate user)
         {
             int requestResult;
@@ -168,7 +169,7 @@ namespace pureconnect.Controllers
 
         }
 
-        [HttpPut]
+        [HttpPut("update")]
         public ActionResult UpdateUserProfile(string id, [FromBody] UserUpdateProfile user)
         {
             int requestResult;
@@ -206,7 +207,7 @@ namespace pureconnect.Controllers
             }
             return new StatusCodeResult(200);
         }
-        [HttpDelete]
+        [HttpDelete("delete")]
         public ActionResult DeleteUser(string id)
         {
             int requestResult;

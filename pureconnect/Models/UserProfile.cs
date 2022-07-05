@@ -19,5 +19,6 @@
         public string Profile_Image { get; set; }
 
         public string Background_Image { get; set; }
+
     }
 }
