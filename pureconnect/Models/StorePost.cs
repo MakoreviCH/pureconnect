@@ -1,6 +1,6 @@
 ﻿namespace pureconnect.Models
 {
-    public class StorePostFull
+    public class StorePost
     {
         public int ID { get; set; }
 
