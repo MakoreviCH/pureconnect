@@ -82,8 +82,30 @@ namespace pureconnect.Controllers
 			}
 		}
 
-
-
+		[HttpGet("registration")]
+		public ActionResult CheckRegistration(string email, string phone, string username)
+		{
+			string query = "BEGIN DECLARE @ReturnCode sysname; " +
+				"IF Exists(SELECT* FROM Users WHERE Mobile = @Mobile OR Email = @Email or Username = @Username) " +
+				"BEGIN SET @ReturnCode = 206; END " +
+				"ELSE BEGIN SET @ReturnCode = 200; END " +
+				"SELECT @ReturnCode; END";
+			string connectionString = Configuration.GetConnectionString("PureDatabase");
+			using (SqlConnection connection = new SqlConnection(connectionString))
+			{
+				SqlCommand command = new SqlCommand(query, connection);
+				command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar);
+				command.Parameters["@Email"].Value = email;
+				command.Parameters.Add("@Mobile", System.Data.SqlDbType.NVarChar);
+				command.Parameters["@Mobile"].Value = phone;
+				command.Parameters.Add("@Username", System.Data.SqlDbType.NVarChar);
+				command.Parameters["@Username"].Value = username;
+				connection.Open();
+				var reader = command.ExecuteReader();
+				reader.Read();
+				return new StatusCodeResult(int.Parse(reader.GetValue(0).ToString()));
+			}
+		}
 		[HttpGet("login")]
 		public ActionResult CheckCredetinals(string login, string password)
 		{
