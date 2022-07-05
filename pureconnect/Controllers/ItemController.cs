@@ -59,49 +59,57 @@ namespace pureconnect.Controllers
         }
 
         [HttpGet("byId")]
-        public List<Item> GetPost(string type, string ordering)  
+        public List<Item> GetItem(string user_id, string? type, string? ordering)
         {
             string construct = "";
             string query = "SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID ";
-            if (type.ToLower() == "stickers")
+            if (type != null)
             {
-                query += "WHERE Items.Type = 'stickers'";
-                construct += "WHERE Items.Type = 'stickers'";
-            }
-            else if (type.ToLower() == "frames")
-            {
-                query += "WHERE Items.Type = 'frames'";
-                construct += "WHERE Items.Type = 'frames'";
-            }
-            else if (type.ToLower() == "backgrounds")
-            {
-                query += "WHERE Items.Type = 'backgrounds'";
-                construct += "WHERE Items.Type = 'backgrounds'";
+                if (type.ToLower() == "stickers")
+                {
+                    query += "WHERE Items.Type = 'stickers'";
+                    construct += "WHERE Items.Type = 'stickers'";
+                }
+                else if (type.ToLower() == "frames")
+                {
+                    query += "WHERE Items.Type = 'frames'";
+                    construct += "WHERE Items.Type = 'frames'";
+                }
+                else if (type.ToLower() == "backgrounds")
+                {
+                    query += "WHERE Items.Type = 'backgrounds'";
+                    construct += "WHERE Items.Type = 'backgrounds'";
+                }
             }
 
-            if (ordering.ToLower() == "priceDesc")
+
+            if (ordering != null)
             {
-                query += " ORDER BY Items.Price DESC";
+                if (ordering.ToLower() == "priceDesc")
+                {
+                    query += " ORDER BY Items.Price DESC";
+                }
+                else if (ordering.ToLower() == "priceAsc")
+                {
+                    query += " ORDER BY Items.Price ASC";
+                }
+                else if (ordering.ToLower() == "newest")
+                {
+                    query += " ORDER BY Items.Created_At DESC";
+                }
+                else if (ordering.ToLower() == "popularity")
+                {
+                    query = $"SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type, COUNT(User_Items.User_ID) AS Cnt FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID INNER JOIN User_Items ON User_Items.Item_ID = Items.ID {construct} GROUP BY Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type ORDER BY Cnt DESC";
+                }
             }
-            else if (ordering.ToLower() == "priceAsc")
-            {
-                query += " ORDER BY Items.Price ASC";
-            }
-            else if (ordering.ToLower() == "newest")
-            {
-                query += " ORDER BY Items.Created_At DESC";
-            }
-            else if (ordering.ToLower() == "popularity")
-            {
-                query = $"SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type, COUNT(User_Items.User_ID) AS Cnt FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID INNER JOIN User_Items ON User_Items.Item_ID = Items.ID {construct} GROUP BY Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type ORDER BY Cnt DESC";
-            }
+
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 SqlCommand command = new SqlCommand(query, connection);
                 connection.Open();
-                var reader = command.ExecuteReader();    
+                var reader = command.ExecuteReader();
                 List<Item> posts = new List<Item>();
                 while (reader.Read())
                 {
@@ -111,9 +119,14 @@ namespace pureconnect.Controllers
                     p.Item_Name = reader.GetValue(2).ToString();
                     p.Images = reader.GetValue(3).ToString();
                     p.Type = reader.GetValue(4).ToString();
-                    
+                    ItemBuy itemBuy = new ItemBuy();
+                    itemBuy.Item_ID = p.ID;
+                    itemBuy.User_ID = user_id;
+                    p.IsBought = IsBought(itemBuy);
+
                     posts.Add(p);
                 }
+
 
                 return posts;
             }
@@ -153,8 +166,8 @@ namespace pureconnect.Controllers
         [HttpGet("isBought")]
         public bool IsBought([FromBody] ItemBuy i)
         {
-            string query = "SELECT User_ID FROM User_Item WHERE User_Id = @User_ID AND Item_ID = @Item_ID";
-            
+            string query = "SELECT User_ID FROM User_Items WHERE User_Id = @User_ID AND Item_ID = @Item_ID";
+
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -177,6 +190,45 @@ namespace pureconnect.Controllers
                 }
 
                 return false;
+            }
+
+        }
+
+        [HttpGet("search")]
+        public List<Item> GetSearchItem(string user_id, string? Search)
+        {
+            string query = $"SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images,Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID WHERE Items.Item_Name LIKE '%'+ @Search +'%' ";
+
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+
+                command.Parameters.Add("@Search", System.Data.SqlDbType.NChar);
+                command.Parameters["@Search"].Value = Search;
+
+                var reader = command.ExecuteReader();
+                List<Item> posts = new List<Item>();
+                while (reader.Read())
+                {
+                    Item p = new Item();
+                    p.ID = Convert.ToInt32(reader.GetValue(0).ToString());
+                    p.User_Name = reader.GetValue(1).ToString();
+                    p.Item_Name = reader.GetValue(2).ToString();
+                    p.Images = reader.GetValue(3).ToString();
+                    p.Type = reader.GetValue(4).ToString();
+                    ItemBuy itemBuy = new ItemBuy();
+                    itemBuy.Item_ID = p.ID;
+                    itemBuy.User_ID = user_id;
+                    p.IsBought = IsBought(itemBuy);
+
+                    posts.Add(p);
+                }
+
+
+                return posts;
             }
 
         }
