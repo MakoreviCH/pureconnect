@@ -15,7 +15,7 @@ namespace pureconnect.Controllers
             Configuration = _configuration;
         }
 
-       
+
         [HttpGet("byID")]
         public StorePost GetStorePost(int id)
         {
