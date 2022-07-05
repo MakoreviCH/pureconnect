@@ -57,5 +57,34 @@ namespace pureconnect.Controllers
             return new StatusCodeResult(200);
 
         }
+
+        [HttpGet("byId")]
+        public List<Item> GetPost()
+        {
+            string query = "SELECT Items.ID, Users.Username, Items.Item_Name, Items.Images, Items.Type FROM Items INNER JOIN Users ON Items.Author_ID = Users.ID";
+            string connectionString = Configuration.GetConnectionString("PureDatabase");
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(query, connection);
+                connection.Open();
+                var reader = command.ExecuteReader();
+                List<Item> posts = new List<Item>();
+                while (reader.Read())
+                {
+                    Item p = new Item();
+                    p.ID = Convert.ToInt32(reader.GetValue(0).ToString());
+                    p.User_Name = reader.GetValue(1).ToString();
+                    p.Item_Name = reader.GetValue(2).ToString();
+                    p.Images = reader.GetValue(3).ToString();
+                    p.Type = reader.GetValue(4).ToString();
+                    
+                    posts.Add(p);
+                }
+
+                return posts;
+            }
+
+        }
     }
 }
