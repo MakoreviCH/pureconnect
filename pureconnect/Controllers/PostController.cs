@@ -41,7 +41,7 @@ namespace pureconnect.Controllers
                     p.Images = reader.GetValue(5).ToString();
                     p.Count_Likes = Convert.ToInt32(reader.GetValue(6).ToString());
                     p.Count_Comments = Convert.ToInt32(reader.GetValue(7).ToString());
-                    p.IsLiked = CheckLike(p.User_ID, p.ID);
+
                     posts.Add(p);
                 }
 
@@ -76,7 +76,7 @@ namespace pureconnect.Controllers
                     p.Images = reader.GetValue(5).ToString();
                     p.Count_Likes = Convert.ToInt32(reader.GetValue(6).ToString());
                     p.Count_Comments = Convert.ToInt32(reader.GetValue(7).ToString());
-                    p.IsLiked = CheckLike(p.User_ID, p.ID);
+
                     posts.Add(p);
                 }
 
@@ -91,6 +91,9 @@ namespace pureconnect.Controllers
         [HttpPut("update")]
         public ActionResult UpdatePost([FromBody]PostUpdate p)
         {
+
+           
+
             string query = "UPDATE Posts SET Text = @Text, Images = @Images WHERE ID = @ID";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
@@ -106,14 +109,10 @@ namespace pureconnect.Controllers
 
                 command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
-                try
-                {
+
+                
                     command.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return new StatusCodeResult(204);
-                }
+               
                 
             }
             return new StatusCodeResult(200);
@@ -123,6 +122,9 @@ namespace pureconnect.Controllers
         [HttpPost("add")]
         public ActionResult AddPost([FromBody] PostAdd p)
         {
+
+
+
             string query = "INSERT INTO Posts(User_ID, Text, Images) VALUES (@User_ID, @Text, @Images)";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
@@ -139,14 +141,9 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@Images", System.Data.SqlDbType.NVarChar);
                 command.Parameters["@Images"].Value = (object)p.Images ?? DBNull.Value;
 
-                try
-                {
-                    command.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return new StatusCodeResult(204);
-                }
+
+                command.ExecuteNonQuery();
+
 
             }
             return new StatusCodeResult(200);
@@ -156,6 +153,9 @@ namespace pureconnect.Controllers
         [HttpDelete("delete")]
         public ActionResult DeletePost(int id)
         {
+
+
+
             string query = "DELETE FROM Posts WHERE ID = @ID";
             string connectionString = Configuration.GetConnectionString("PureDatabase");
 
@@ -166,86 +166,16 @@ namespace pureconnect.Controllers
                 command.Parameters.Add("@ID", System.Data.SqlDbType.NChar);
                 command.Parameters["@ID"].Value = id;
 
-                try
-                {
-                    command.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return new StatusCodeResult(204);
-                }
+
+
+                command.ExecuteNonQuery();
+
+
             }
             return new StatusCodeResult(200);
 
         }
 
-        [HttpGet("checkLike")]
-        public bool CheckLike(string userId, int postId)
-        {
-            string query = "SELECT COUNT(*) FROM Post_Likes WHERE User_ID = @User_ID AND Post_ID = @Post_ID";
-            string connectionString = Configuration.GetConnectionString("PureDatabase");
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                SqlCommand command = new SqlCommand(query, connection);
-                connection.Open();
-                command.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
-                command.Parameters.Add("@Post_ID", System.Data.SqlDbType.Int);
-
-                command.Parameters["@User_ID"].Value = userId;
-                command.Parameters["@Post_ID"].Value = postId;
-
-                var reader = command.ExecuteReader();
-                reader.Read();
-                if (Convert.ToInt32(reader.GetValue(0)) > 0)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-
-        [HttpPost("updateLike")]
-        public ActionResult UpdateLike(PostLike pl)
-        {
-            string queryLike = "";
-            if (pl.Status)
-            {
-                queryLike = "DELETE FROM Post_Likes WHERE User_ID = @User_ID AND Post_ID = @Post_ID";
-            }
-            else
-            {
-                queryLike = "INSERT INTO Post_Likes (User_ID, Post_ID) VALUES (@User_ID, @Post_ID)";
-            }
-            string connectionString = Configuration.GetConnectionString("PureDatabase");
-
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-               
-                SqlCommand commandLike = new SqlCommand(queryLike, connection);
-
-                connection.Open();
-
-                commandLike.Parameters.Add("@Post_ID", System.Data.SqlDbType.Int);
-                commandLike.Parameters["@Post_ID"].Value = pl.Post_ID;
-                commandLike.Parameters.Add("@User_ID", System.Data.SqlDbType.NChar);
-                commandLike.Parameters["@User_ID"].Value = pl.User_ID;
-                try
-                {
-                    var readerLike = commandLike.ExecuteNonQuery();
-                }
-                catch
-                {
-                    return new StatusCodeResult(204);
-                }
-                
-            }
-
-            return new StatusCodeResult(200);
-        }
 
     }
 

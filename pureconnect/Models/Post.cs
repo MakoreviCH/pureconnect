@@ -10,6 +10,5 @@
         public string? Images { get; set; }
         public int Count_Likes { get; set; }
         public int Count_Comments { get; set; }
-        public bool IsLiked { get; set; }
     }
 }
